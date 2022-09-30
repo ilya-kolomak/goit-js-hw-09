@@ -24,6 +24,6 @@ const handleChangeStop = () => {
   clearInterval(intervalId);
   console.log('stop');
   buttonStartRef.removeAttribute('disabled');
-  buttonStopRef.setAttribute('disabled', 'disablet');
+  buttonStopRef.setAttribute('disabled');
 };
 buttonStopRef.addEventListener('click', handleChangeStop);

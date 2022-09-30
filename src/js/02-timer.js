@@ -1,12 +1,18 @@
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
+import 'flatpickr/dist/themes/material_blue.css';
 
-const TIMER_DEADLINE = new Date(2022, 8, 30, 19, 20);
+// const TIMER_DEADLINE = options.defaultDate;
 
 const inputRef = document.querySelector('#datetime-picker');
-const timerRef = document.querySelector('.timer');
-let numbersRef = document.querySelectorAll('.value');
+const btnStart = document.querySelector('[data-start]');
+const daysRef = document.querySelector('[data-days]');
+const hoursRef = document.querySelector('[data-hours]');
+const minutesRef = document.querySelector('[data-minutes]');
+const secondsRef = document.querySelector('[data-seconds]');
+
+let selectedTime = null;
 
 const options = {
   enableTime: true,
@@ -14,64 +20,67 @@ const options = {
   defaultDate: new Date(),
   minuteIncrement: 1,
   onClose(selectedDates) {
-    console.log(selectedDates[0]);
+    if (selectedDates[0] <= new Date()) {
+      Notify.failure('Please choose a date in the future');
+      selectedDates[0] = new Date();
+    } else {
+      btnStart.disabled = false;
+      selectedTime = selectedDates[0].getTime();
+    }
   },
 };
-const fp = flatpickr(inputRef, options);
 
-const timer = {
-  intervalId: null,
-  refs: {},
-  notifyOptons: {
-    clickToClose: true,
-    closeButton: true,
-  },
+class Timer {
+  constructor() {
+    this.intervalId = null;
+    this.isActive = false;
+    btnStart.disabled = true;
+  }
 
-  start(rootSelector, deadLine) {
-    const dift = deadLine.getTime() - Date.now();
-
-    if (dift <= 0) {
-      Notify.failure('время указано не верно!', this.notifyOptons);
+  start() {
+    if (this.isActive) {
       return;
     }
-    Notify.success('Отлично', this.notifyOptons);
-    this.getRefs(rootSelector);
+    this.isActive = true;
+
     this.intervalId = setInterval(() => {
-      const dift = deadLine.getTime() - Date.now();
+      const currentTime = new Date();
+      const deltaTime = selectedTime - currentTime;
+      const timeComponent = convertMs(deltaTime);
 
-      const data = this.convertMs(dift);
+      if (deltaTime <= 1000) {
+        clearInterval(this.intervalId);
+      }
 
-      this.refs.days.textContent = data.days;
-      this.refs.hours.textContent = data.hours;
-      this.refs.minutes.textContent = data.minutes;
-      this.refs.seconds.textContent = data.seconds;
+      daysRef.textContent = timeComponent.days;
+      hoursRef.textContent = timeComponent.hours;
+      minutesRef.textContent = timeComponent.minutes;
+      secondsRef.textContent = timeComponent.seconds;
     }, 1000);
-  },
 
-  getRefs(rootSelector) {
-    this.refs.days = rootSelector.querySelector('SPAN [data-days]');
-    this.refs.hours = rootSelector.querySelector('SPAN [data-hours]');
-    this.refs.minutes = rootSelector.querySelector('SPAN [data-minutes]');
-    this.refs.seconds = rootSelector.querySelector('SPAN [data-seconds]');
-  },
-  convertMs(ms) {
-    // Number of milliseconds per unit of time
-    const second = 1000;
-    const minute = second * 60;
-    const hour = minute * 60;
-    const day = hour * 24;
+    function convertMs(ms) {
+      // Number of milliseconds per unit of time
+      const second = 1000;
+      const minute = second * 60;
+      const hour = minute * 60;
+      const day = hour * 24;
 
-    // Remaining days
-    const days = Math.floor(ms / day);
-    // Remaining hours
-    const hours = Math.floor((ms % day) / hour);
-    // Remaining minutes
-    const minutes = Math.floor(((ms % day) % hour) / minute);
-    // Remaining seconds
-    const seconds = Math.floor((((ms % day) % hour) % minute) / second);
+      // Remaining days
+      const days = pad(Math.floor(ms / day));
+      // Remaining hours
+      const hours = pad(Math.floor((ms % day) / hour));
+      // Remaining minutes
+      const minutes = pad(Math.floor(((ms % day) % hour) / minute));
+      // Remaining seconds
+      const seconds = pad(Math.floor((((ms % day) % hour) % minute) / second));
 
-    return { days, hours, minutes, seconds };
-  },
-};
-
-timer.start(timerRef, TIMER_DEADLINE);
+      return { days, hours, minutes, seconds };
+    }
+    function pad(value) {
+      return String(value).padStart(2, '0');
+    }
+  }
+}
+const timer = new Timer();
+flatpickr(inputRef, options);
+btnStart.addEventListener('click', () => timer.start());
