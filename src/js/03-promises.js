@@ -2,7 +2,6 @@ import { Notify } from 'notiflix/build/notiflix-notify-aio';
 const formRef = document.querySelector('.form');
 
 formRef.addEventListener('submit', handleSubmit);
-let timeOutId = null;
 
 function handleSubmit(event) {
   event.preventDefault();
@@ -26,9 +25,9 @@ function handleSubmit(event) {
 
   const first = Number(event.currentTarget.delay.value); // get from DOM element
   const delay = Number(event.currentTarget.step.value); // get from DOM element
-  const count = Number(event.currentTarget.delay.value); // get from DOM element
+  const count = Number(event.currentTarget.amount.value); // get from DOM element
 
-  timeOutId = setTimeout(() => {
+  setTimeout(() => {
     for (let i = 0; i < count; i++) {
       createPromise(i + 1, first + delay * i)
         .then(({ position, delay }) => {
