@@ -23,7 +23,7 @@ const changeColors = () => {
 const handleChangeStop = () => {
   clearInterval(intervalId);
   console.log('stop');
-  buttonStartRef.removeAttribute('disabled');
-  buttonStopRef.setAttribute('disabled');
+  buttonStartRef.removeAttribute('disabled', 'disabled');
+  buttonStopRef.setAttribute('disabled', 'disabled');
 };
 buttonStopRef.addEventListener('click', handleChangeStop);
